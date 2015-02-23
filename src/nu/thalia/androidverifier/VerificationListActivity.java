@@ -1,4 +1,6 @@
-package org.irmacard.androidverifier;
+package nu.thalia.androidverifier;
+
+import org.irmacard.androidverifier.R;
 
 import android.content.Intent;
 import android.os.Bundle;

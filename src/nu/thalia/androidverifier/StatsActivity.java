@@ -1,10 +1,12 @@
-package org.irmacard.androidverifier;
+package nu.thalia.androidverifier;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+
+import org.irmacard.androidverifier.R;
 
 import android.app.Activity;
 import android.database.DatabaseUtils;

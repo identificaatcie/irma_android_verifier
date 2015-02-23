@@ -1,8 +1,10 @@
-package org.irmacard.androidverifier;
+package nu.thalia.androidverifier;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.irmacard.androidverifier.R;
 
 import android.support.v4.app.Fragment;
 import android.content.ContentUris;

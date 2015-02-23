@@ -1,4 +1,4 @@
-package org.irmacard.androidverifier;
+package nu.thalia.androidverifier;
 
 import android.net.Uri;
 import android.provider.BaseColumns;

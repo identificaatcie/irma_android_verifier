@@ -76,7 +76,7 @@
         android:textStyle="italic"
         android:textSize="30dp" />
 
-    <org.irmacard.androidverifier.AnimatedArrow
+    <nu.thalia.androidverifier.AnimatedArrow
         android:id="@+id/animatedArrow"
         android:layout_width="60dp"
         android:layout_height="60dp"

@@ -18,7 +18,7 @@
  * Copyright (C) Wouter Lueks, Radboud University Nijmegen, July 2012.
  */
 
-package org.irmacard.androidverifier;
+package nu.thalia.androidverifier;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -27,6 +27,7 @@ import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.IsoDepCardService;
 
 import org.irmacard.android.util.credentials.AndroidWalker;
+import org.irmacard.androidverifier.R;
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
