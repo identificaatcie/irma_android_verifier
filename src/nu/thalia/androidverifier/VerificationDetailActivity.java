@@ -1,10 +1,8 @@
 package nu.thalia.androidverifier;
 
-import org.irmacard.androidverifier.R;
-
-import android.support.v4.app.FragmentActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 

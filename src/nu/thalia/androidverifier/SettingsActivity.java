@@ -3,7 +3,6 @@ package nu.thalia.androidverifier;
 import java.util.Collection;
 import java.util.List;
 
-import org.irmacard.androidverifier.R;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.IssuerDescription;

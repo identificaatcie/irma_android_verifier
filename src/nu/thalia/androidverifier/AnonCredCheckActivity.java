@@ -27,7 +27,6 @@ import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.IsoDepCardService;
 
 import org.irmacard.android.util.credentials.AndroidWalker;
-import org.irmacard.androidverifier.R;
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
@@ -219,7 +218,7 @@ public class AnonCredCheckActivity extends Activity {
     	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
     	String verifier = sharedPref.getString(SettingsActivity.KEY_PREF_VERIFIER, "");
     	String verificationID = sharedPref.getString(SettingsActivity.KEY_PREF_VERIFICATIONDESCRIPTION, "");
-
+    	
     	if (verifier.equals("") || verificationID.equals("")) {
     		DescriptionStore ds = null;
     		try {
@@ -229,13 +228,14 @@ public class AnonCredCheckActivity extends Activity {
     		}
     		
     		// Check whether the selected verifier is still available, if not, select the first one
-    		Collection<IssuerDescription> verifiers = ds.getIssuerDescriptions();
+//    		Collection<IssuerDescription> verifiers = ds.getIssuerDescriptions();
     		String selectedVerifier = null;
-    		for (IssuerDescription issuerDescription : verifiers) {
-				if (selectedVerifier == null || verifier.equals(issuerDescription.getID())) {
-					selectedVerifier = issuerDescription.getID();
-				}
-			}
+//    		for (IssuerDescription issuerDescription : verifiers) {
+//				if ((selectedVerifier == null || verifier.equals(issuerDescription.getID()))) {
+//					selectedVerifier = issuerDescription.getID();
+//				}
+//			}
+    		selectedVerifier = "Thalia";
     		if (!verifier.equals(selectedVerifier)) {
     			// If not properly set, change/set the preference
     			Editor prefEditor = PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -449,13 +449,32 @@ public class AnonCredCheckActivity extends Activity {
 		
 		private Verification checkAttributes(Attributes attr) {
 			// Use-case specific code for handling the attributes
-			if (currentVerifier.equals("Bar") && currentVerificationID.equals("over18")) {
+			// TODO read from XML
+			if (((currentVerifier.equals("Bar") || currentVerifier.equals("Thalia")) && currentVerificationID.equals("over18"))) {
 				String age = new String(attr.get("over18"));
 				if (age.equalsIgnoreCase("yes")) {
 	        		return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
 	        	} else {
 	        		return new Verification(Verification.RESULT_INVALID, lastTagUID, "Not over 18", "");		        		
 	        	}
+			} else if (currentVerifier.equals("Thalia")) {
+				String noThaliamsg;
+				String thaliaCheck;
+				if (currentVerificationID.equals("member")) {
+					noThaliamsg = "Not a Thalia member";
+					thaliaCheck = "isMember";
+				} else if (currentVerificationID.equals("honoraryMember")) {
+					noThaliamsg = "Not a Thalia honorary member";
+					thaliaCheck = "isHonoraryMember";
+				} else { // isBegunstiger
+					noThaliamsg = "Not a Thalia begunstiger";
+					thaliaCheck = "isBegunstiger";
+				}
+				if (new String(attr.get(thaliaCheck)).equalsIgnoreCase("yes")) {
+					return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
+				} else {
+					return new Verification(Verification.RESULT_INVALID, lastTagUID, noThaliamsg, "");
+				}
 			} else if (currentVerifier.equals("Stadspas") && currentVerificationID.equals("addressWoonplaats")) {
 				String city = new String(attr.get("city"));
 				return new Verification(Verification.RESULT_VALID, lastTagUID, city, city);

@@ -1,7 +1,5 @@
 package nu.thalia.androidverifier;
 
-import org.irmacard.androidverifier.R;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
