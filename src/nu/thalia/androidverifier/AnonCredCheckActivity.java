@@ -23,15 +23,14 @@ package nu.thalia.androidverifier;
 import java.util.Collection;
 import java.util.Locale;
 
-import net.sourceforge.scuba.smartcards.CardService;
-import net.sourceforge.scuba.smartcards.IsoDepCardService;
+import net.sf.scuba.smartcards.CardService;
+import net.sf.scuba.smartcards.IsoDepCardService;
 
 import org.irmacard.android.util.credentials.AndroidWalker;
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixCredentials;
-import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
-import org.irmacard.credentials.idemix.util.CredentialInformation;
-import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
+import org.irmacard.credentials.idemix.descriptions.IdemixVerificationDescription;
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.IssuerDescription;
@@ -77,7 +76,7 @@ public class AnonCredCheckActivity extends Activity {
 	private IntentFilter[] mFilters;
 	private String[][] mTechLists;
 	private final String TAG = "AnonCredCheck";
-	private IdemixVerifySpecification idemixVerifySpec;
+	private IdemixVerificationDescription idemixVerifySpec;
 	private byte[] lastTagUID;
 	private boolean useFullScreen = true;
 	private CountDownTimer cdt = null;
@@ -109,9 +108,9 @@ public class AnonCredCheckActivity extends Activity {
         requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.main);
         getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.transparentshape));
-        
+
         findViewById(R.id.mainshape).setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        
+
         // Prevent the screen from turning off
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // NFC stuff
@@ -128,10 +127,10 @@ public class AnonCredCheckActivity extends Activity {
 
         setState(STATE_WAITING, "");
 
-        
+
     }
 
-    
+
     void setupScreen() {
     	if (useFullScreen) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -143,7 +142,7 @@ public class AnonCredCheckActivity extends Activity {
             getActionBar().show();
     	}
     }
-    
+
     public void toggleFullscreen(View v) {
     	useFullScreen = !useFullScreen;
     	if (useFullScreen) {
@@ -151,7 +150,7 @@ public class AnonCredCheckActivity extends Activity {
     	}
     	setupScreen();
     }
-    
+
     private void setState(int state, String feedback) {
     	Log.i(TAG,"Set state: " + state);
     	activityState = state;
@@ -183,10 +182,10 @@ public class AnonCredCheckActivity extends Activity {
 		default:
 			break;
 		}
-    	
+
 
     	if (activityState == STATE_RESULT_OK ||
-    			activityState == STATE_RESULT_MISSING || 
+    			activityState == STATE_RESULT_MISSING ||
     			activityState == STATE_RESULT_WARNING) {
         	if (cdt != null) {
         		cdt.cancel();
@@ -207,9 +206,9 @@ public class AnonCredCheckActivity extends Activity {
     	((TextView)findViewById(R.id.feedbacktext)).setText(feedback);
 		((TextView)findViewById(R.id.statustext)).setText(statusTextResource);
 		((ImageView)findViewById(R.id.statusimage)).setImageResource(imageResource);
-    	
+
     }
-    
+
     /**
      * Checks whether verifier/issuer and verification description are already properly
      * set in the preferences.
@@ -218,7 +217,7 @@ public class AnonCredCheckActivity extends Activity {
     	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
     	String verifier = sharedPref.getString(SettingsActivity.KEY_PREF_VERIFIER, "");
     	String verificationID = sharedPref.getString(SettingsActivity.KEY_PREF_VERIFICATIONDESCRIPTION, "");
-    	
+
     	if (verifier.equals("") || verificationID.equals("")) {
     		DescriptionStore ds = null;
     		try {
@@ -226,31 +225,32 @@ public class AnonCredCheckActivity extends Activity {
     		} catch (InfoException e) {
     			e.printStackTrace();
     		}
-    		
+
     		// Check whether the selected verifier is still available, if not, select the first one
 //    		Collection<IssuerDescription> verifiers = ds.getIssuerDescriptions();
     		String selectedVerifier = null;
 //    		for (IssuerDescription issuerDescription : verifiers) {
-//				if ((selectedVerifier == null || verifier.equals(issuerDescription.getID()))) {
+//				if (selectedVerifier == null || verifier.equals(issuerDescription.getID())) {
 //					selectedVerifier = issuerDescription.getID();
 //				}
 //			}
-    		selectedVerifier = "Thalia";
+			selectedVerifier = "Thalia";
     		if (!verifier.equals(selectedVerifier)) {
     			// If not properly set, change/set the preference
     			Editor prefEditor = PreferenceManager.getDefaultSharedPreferences(this).edit();
     			prefEditor.putString(SettingsActivity.KEY_PREF_VERIFIER, selectedVerifier);
     			prefEditor.commit();
     		}
-    		
+
     		// Check whether the selected verificationdescription is still available, if not, select the first one
-    		Collection<VerificationDescription> verificationDescriptions = ds.getVerificationDescriptionsForVerifier(selectedVerifier);
+//    		Collection<VerificationDescription> verificationDescriptions = ds.getVerificationDescriptionsForVerifier(selectedVerifier);
     		String selectedVerificationID = null;
-    		for (VerificationDescription verificationDescription : verificationDescriptions) {
-				if (selectedVerificationID == null || verificationID.equals(verificationDescription.getVerificationID())) {
-					selectedVerificationID = verificationDescription.getVerificationID();
-				}
-			}
+//    		for (VerificationDescription verificationDescription : verificationDescriptions) {
+//				if (selectedVerificationID == null || verificationID.equals(verificationDescription.getVerificationID())) {
+//					selectedVerificationID = verificationDescription.getVerificationID();
+//				}
+//			}
+			selectedVerificationID = "thaliaMemberType";
     		if (!verificationID.equals(selectedVerificationID)) {
     			// If not properly set, change/set the preference
     			Editor prefEditor = PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -259,12 +259,10 @@ public class AnonCredCheckActivity extends Activity {
     		}
     	}
     }
-    
+
     public void setupVerification() {
-
-
         AndroidWalker aw = new AndroidWalker(getResources().getAssets());
-        CredentialInformation.setTreeWalker(aw);
+        IdemixKeyStore.setTreeWalker(aw);
         DescriptionStore.setTreeWalker(aw);
         try {
 			DescriptionStore.getInstance();
@@ -272,9 +270,9 @@ public class AnonCredCheckActivity extends Activity {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-        
+
     	checkPreferences();
-    	
+
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         String verifier = sharedPref.getString(SettingsActivity.KEY_PREF_VERIFIER, "Albron");
         String verificationID = sharedPref.getString(SettingsActivity.KEY_PREF_VERIFICATIONDESCRIPTION, "studentCardNone");
@@ -283,22 +281,22 @@ public class AnonCredCheckActivity extends Activity {
     	currentVerificationID = verificationID;
     	Log.i(TAG,"use CurrentVerifier: " + currentVerifier);
     	Log.i(TAG,"use VerificationID: " + currentVerificationID);
-    	
-        VerifyCredentialInformation vci = null;
+
+		IdemixVerificationDescription vci = null;
 		try {
-			vci = new VerifyCredentialInformation(verifier, verificationID);
 			VerificationDescription vd = DescriptionStore.getInstance().getVerificationDescriptionByName(verifier, verificationID);
+			idemixVerifySpec = new IdemixVerificationDescription(vd);
+
 			TextView credInfo = (TextView)findViewById(R.id.credentialinfo);
 			credInfo.setText(vd.getName());
 			ImageView targetLogo = (ImageView)findViewById(R.id.target);
 			targetLogo.setImageBitmap(aw.getVerifierLogo(vd));
-			idemixVerifySpec = vci.getIdemixVerifySpecification();
 		} catch (InfoException e) {
 			e.printStackTrace();
 		}
     	verificationSetup  = true;
     }
-    
+
     public void printInfo() {
     	try {
 			Collection<IssuerDescription> issuers = DescriptionStore.getInstance().getIssuerDescriptions();
@@ -312,36 +310,36 @@ public class AnonCredCheckActivity extends Activity {
 		} catch (InfoException e) {
 			e.printStackTrace();
 		}
-    	
+
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
         if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(getIntent().getAction())) {
         	processIntent(getIntent());
-        }        
+        }
         if (nfcA != null) {
         	nfcA.enableForegroundDispatch(this, mPendingIntent, mFilters, mTechLists);
         }
 
         setupVerification();
-        
+
         // Set the fonts, we have to do this like this because the font is supplied
         // with the application.
         Typeface ubuntuFontR=Typeface.createFromAsset(getAssets(),"fonts/Ubuntu-R.ttf");
         ((TextView)findViewById(R.id.statustext)).setTypeface(ubuntuFontR);
         ((TextView)findViewById(R.id.feedbacktext)).setTypeface(ubuntuFontR);
-        
+
         Typeface ubuntuFontM=Typeface.createFromAsset(getAssets(),"fonts/Ubuntu-B.ttf");
         ((TextView)findViewById(R.id.credentialinfo)).setTypeface(ubuntuFontM);
-        
+
         Typeface ubuntuFontRI=Typeface.createFromAsset(getAssets(),"fonts/Ubuntu-RI.ttf");
         ((TextView)findViewById(R.id.feedbacktext)).setTypeface(ubuntuFontRI);
-        
+
         setupScreen();
     }
-    
+
     @Override
     public void onPause() {
     	super.onPause();
@@ -353,7 +351,7 @@ public class AnonCredCheckActivity extends Activity {
     public void processIntent(Intent intent) {
         Tag tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
     	IsoDep tag = IsoDep.get(tagFromIntent);
-    	
+
     	if (tag != null && !intent.getBooleanExtra("handled", false)) {
     		lastTagUID = tagFromIntent.getId();
     		// Make sure verification stuff is setup
@@ -368,12 +366,12 @@ public class AnonCredCheckActivity extends Activity {
     	}
     	intent.putExtra("handled", true);
     }
-    
+
     @Override
     public void onNewIntent(Intent intent) {
         setIntent(intent);
     }
-    
+
     private void showResult(int resultValue, String feedback) {
     	switch (resultValue) {
 		case Verification.RESULT_VALID:
@@ -389,7 +387,7 @@ public class AnonCredCheckActivity extends Activity {
 			break;
 		}
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -449,40 +447,56 @@ public class AnonCredCheckActivity extends Activity {
 		
 		private Verification checkAttributes(Attributes attr) {
 			// Use-case specific code for handling the attributes
-			// TODO read from XML
-			if (((currentVerifier.equals("Bar") || currentVerifier.equals("Thalia")) && currentVerificationID.equals("over18"))) {
+			if (currentVerifier.equals("Bar") && currentVerificationID.equals("over18")) {
 				String age = new String(attr.get("over18"));
 				if (age.equalsIgnoreCase("yes")) {
 	        		return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
 	        	} else {
 	        		return new Verification(Verification.RESULT_INVALID, lastTagUID, "Not over 18", "");		        		
 	        	}
-			} else if (currentVerifier.equals("Thalia")) {
-				String noThaliamsg;
-				String thaliaCheck;
-				if (currentVerificationID.equals("member")) {
-					noThaliamsg = "Not a Thalia member";
-					thaliaCheck = "isMember";
-				} else if (currentVerificationID.equals("honoraryMember")) {
-					noThaliamsg = "Not a Thalia honorary member";
-					thaliaCheck = "isHonoraryMember";
-				} else { // isBegunstiger
-					noThaliamsg = "Not a Thalia begunstiger";
-					thaliaCheck = "isBegunstiger";
-				}
-				if (new String(attr.get(thaliaCheck)).equalsIgnoreCase("yes")) {
-					return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
-				} else {
-					return new Verification(Verification.RESULT_INVALID, lastTagUID, noThaliamsg, "");
-				}
 			} else if (currentVerifier.equals("Stadspas") && currentVerificationID.equals("addressWoonplaats")) {
 				String city = new String(attr.get("city"));
 				return new Verification(Verification.RESULT_VALID, lastTagUID, city, city);
+			} else if (currentVerifier.equals("Thalia")) {
+				if (currentVerificationID.equals("member") ||
+						currentVerificationID.equals("honoraryMember") ||
+						currentVerificationID.equals("begunstiger")) {
+					String noThaliamsg;
+					String thaliaCheck;
+
+					if (currentVerificationID.equals("member")) {
+						noThaliamsg = "Not a Thalia member";
+						thaliaCheck = "isMember";
+					} else if (currentVerificationID.equals("honoraryMember")) {
+						noThaliamsg = "Not a Thalia honorary member";
+						thaliaCheck = "isHonoraryMember";
+					} else { // isBegunstiger
+						noThaliamsg = "Not a Thalia begunstiger";
+						thaliaCheck = "isBegunstiger";
+					}
+					if (new String(attr.get(thaliaCheck)).equalsIgnoreCase("yes")) {
+						return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
+					} else {
+						return new Verification(Verification.RESULT_INVALID, lastTagUID, noThaliamsg, "");
+					}
+				} else if (currentVerificationID.equals("thaliaMemberType")) {
+					String memberType = new String(attr.get("memberType"));
+					if (memberType.equals("Yearly Membership") ||
+						memberType.equals("Study Membership") ||
+						memberType.equals("Honorary Member") ||
+						memberType.equals("Benefactor")) {
+						return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
+					} else {
+						return new Verification(Verification.RESULT_INVALID, lastTagUID, "Not a Thalia member", "");
+					}
+				} else {
+					return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
+				}
 			} else {
 				return new Verification(Verification.RESULT_VALID, lastTagUID, "", "");
 			}
 		}
-		
+
 		@Override
 		protected void onPostExecute(Verification verification) {
 	        // Defines an object to contain the new values to insert

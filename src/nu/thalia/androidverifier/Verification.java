@@ -1,11 +1,12 @@
 package nu.thalia.androidverifier;
 
 import java.text.DateFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import net.sourceforge.scuba.util.Hex;
+import net.sf.scuba.util.Hex;
 
 public class Verification {
 	public final static int RESULT_VALID   = 0;
@@ -44,27 +45,27 @@ public class Verification {
 			return "Unknown state";
 		}
 	}
-	
+
 	public int getResult() {
 		return result;
 	}
-	
+
 	public byte[] getCardUID() {
 		return cardUID;
 	}
-	
+
 	public String getCardUIDString() {
 		return Hex.bytesToHexString(cardUID);
 	}
-	
+
 	public String getInfo() {
 		return info;
 	}
-	
+
 	public String getFeedback() {
 		return feedback;
 	}
-		
+
 	@Override
 	public String toString() {
 		return getFormattedDate() + " (" + getFormattedValue() + ")";
